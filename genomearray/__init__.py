@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.signal import convolve
 
 def getFunctionOnRegions(function, regions, input_array):
     """ Conducts the given function on the given regions (strand, start, end) of the input_array. """
