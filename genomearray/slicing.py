@@ -1,5 +1,4 @@
 
-
 def getFunctionOnRegions(function, regions, input_array):
     """ Conducts the given function on the given regions [[strand, left_position, right_position]....] of the input_array. """
     output = np.zeros(len(regions)) + np.nan

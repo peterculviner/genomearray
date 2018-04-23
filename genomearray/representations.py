@@ -1,4 +1,4 @@
-
+import numpy as np
 
 def convertDNAToOneHot(string,dtype=np.uint8):
     """ A,T,G,C 
