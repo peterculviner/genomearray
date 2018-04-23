@@ -1,11 +1,26 @@
 import numpy as np
 
-def getFunctionOnRegions(function, regions, input_array):
+def getGenomeSlice(input_array, strand, left, right):
+    """Return 5' -> 3' slice of genome array based on inclusive coordinantes."""
+    if left > right: # empty slice case
+        return np.asarray([])
+    elif strand == 0:
+        return input_array[strand,left:right+1]
+    elif strand == 1:
+        return np.flip(input_array[strand,left:right+1],axis=0)
+    else:
+        raise ValueError('Invalid strand, choose 0 for + and 1 for -.')
+
+def getFunctionOnRegions(input_function, regions, input_array):
     """ Conducts the given function on the given regions [[strand, left_position, right_position]....] of the input_array. """
-    output = np.zeros(len(regions)) + np.nan
+    out = np.zeros(len(regions)) + np.nan
     for i,r in enumerate(regions):
-        try: output[i] = function(input_array[r[0],r[1]:r[2]+1])
-        except: pass # if function returns an exception, keep region output as np.nan
+        strand, left_position, right_position = r
+        try:
+            # to get arrays, use getGenomeSlice function to ensure directional (i.e. 5' -> 3') input_functions work as intended
+            out[i] = input_function(getGenomeSlice(input_array, strand, left, right))
+        except:
+            pass # if function returns an exception of any kind, keep region output as np.nan
     return output
 
 def getFunctionOnPositions(function, positions, input_array, addl_nt=0):
@@ -18,12 +33,3 @@ def getFunctionOnPositions(function, positions, input_array, addl_nt=0):
         return getFunctionOnRegions(function,
                                     np.asarray([positions[:,0], positions[:,1]-addl_nt, positions[:,2]+addl_nt]).T,
                                     input_array)
-
-def sliceGenomeArray(input_array, strand, left, right):
-    """Return 5'->3' slice of genome array based on inclusive coordinantes."""
-    if strand == 0:
-        return input_array[strand,left:right+1]
-    elif strand == 1:
-        return np.flip(input_array[strand,left:right+1],axis=0)
-    else:
-        raise ValueError('Invalid strand, choose 0 for + and 1 for -.')
