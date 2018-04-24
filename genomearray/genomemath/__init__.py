@@ -1,1 +1,0 @@
-from _slope import rollingSlope

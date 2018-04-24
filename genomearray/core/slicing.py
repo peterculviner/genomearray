@@ -11,7 +11,7 @@ def getGenomeSlice(input_array, strand, left, right):
     else:
         raise ValueError('Invalid strand, choose 0 for + and 1 for -.')
 
-def getFunctionOnRegions(input_function, regions, input_array):
+def getFunctionOnRegions(input_function, regions, input_array, addl_nt = [0,0]):
     """ Conducts the given function on the given regions [[strand, left_position, right_position]....] of the input_array. """
     out = np.zeros(len(regions)) + np.nan
     for i,r in enumerate(regions):
@@ -23,7 +23,7 @@ def getFunctionOnRegions(input_function, regions, input_array):
             pass # if function returns an exception of any kind, keep region output as np.nan
     return output
 
-def getFunctionOnPositions(function, positions, input_array, addl_nt=0):
+def getFunctionOnPositions(function, positions, input_array, addl_nt = [0,0]):
     """ Conducts the given function on regions or positions with additional buffer nucleotide positions on either side. """
     if positions.shape[1] == 2: # is a position record [[strand, position] ....]
         return getFunctionOnRegions(function, 
