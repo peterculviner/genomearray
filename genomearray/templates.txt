@@ -1,0 +1,20 @@
+docstring template:
+    """ NONE - single
+
+        NONE - long
+        
+        Parameters:
+        ----------
+        NONE : NONE
+            NONE
+
+        NONE : NONE
+            NONE
+
+        Returns:
+        ----------
+        NONE : NONE
+            NONE
+
+        |- 0                                                                                  100 -|
+    """

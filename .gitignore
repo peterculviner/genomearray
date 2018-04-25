@@ -9,3 +9,7 @@
 
 # sublime project files
 *.sublime*
+
+# pytest files
+lastfailed
+nodeids

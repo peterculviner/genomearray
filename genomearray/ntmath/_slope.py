@@ -13,7 +13,7 @@ def _vectorrollingslope(input_array, n_positions):
     rolled_array = []
     for left,right in zip(range(n_positions)[::-1],range(n_positions)):
         rolled_array.append(np.r_[np.zeros(left)+np.nan,input_array,np.zeros(right)+np.nan])
-    out = _vectorslope(np.asarray(rolled_data))[n_positions-1:]
+    out = _vectorslope(np.asarray(rolled_array))[n_positions-1:]
     return out
 
 def rollingslope(input_array, slope_distance, slope_position):
@@ -31,7 +31,7 @@ def rollingslope(input_array, slope_distance, slope_position):
         slope_distance : int
             Number of nucleotides across which slope will be calculated.
         
-        slope_position : 5 or 3 (int)
+        slope_position : '5_prime' or '3_prime'
             Position (5' or 3') to which to record slope.
 
         Returns:
@@ -41,15 +41,17 @@ def rollingslope(input_array, slope_distance, slope_position):
             could not be calculated are assigned np.nan as a placeholder to maintain input shape.
         """
     # caculate slope for the positive strand
-    positive_slopes = _vectorrollingslope(smoothed_array[0], slope_distance)
+    positive_slopes = _vectorrollingslope(input_array[0], slope_distance)
     # calculate for the negative strand, reverse before calculation to preserve 5' -> 3' directionality
-    negative_slopes = _vectorrollingslope(np.flip(smoothed_array[1],0), slope_distance)
+    negative_slopes = _vectorrollingslope(np.flip(input_array[1],0), slope_distance)
     # if using a 3' slope, roll the array to account for this
-    if slope_position == 3:
-        positive_slopes = np.r_[np.zeros(slope_distance-1)+np.nan,positive_slopes[:-slope_distance+1]]
-        negative_slopes = np.r_[np.zeros(slope_distance-1)+np.nan,negative_slopes[:-slope_distance+1]]
-    elif slope_position != 5: # check if user inputted actual slope position
-        raise ValueError('Choose a valid slope position (either 5 or 3).')
+    if slope_position == '3_prime':
+        # positive_slopes = np.r_[np.zeros(slope_distance-1)+np.nan,positive_slopes[:-slope_distance+1]]
+        positive_slopes = np.roll(positive_slopes,slope_distance-1)
+        # negative_slopes = np.r_[np.zeros(slope_distance-1)+np.nan,negative_slopes[:-slope_distance+1]]
+        negative_slopes = np.roll(negative_slopes,slope_distance-1)
+    elif slope_position != '5_prime': # check if user inputted actual slope position
+        raise ValueError("Choose a valid slope position (either '5_prime' or '3_prime').")
     # return slopes in a genome-shaped array
     out = np.asarray([positive_slopes, np.flip(negative_slopes,0)])
     return out
