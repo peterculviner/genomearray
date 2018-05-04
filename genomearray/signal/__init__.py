@@ -1,1 +1,1 @@
-from _events import extrema, eventdpos, eventdyx
+from _events import extrema, eventdpos, eventdyperx

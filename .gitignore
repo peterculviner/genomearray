@@ -13,3 +13,6 @@
 # pytest files
 lastfailed
 nodeids
+
+# ipython checkpoint files
+*-checkpoint.ipynb

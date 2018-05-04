@@ -1,10 +1,49 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import matplotlib.gridspec as gridspec 
 from matplotlib.patches import Polygon
 import seaborn as sns
 
+params = {'xtick.labelsize':13,
+          'ytick.labelsize':13,
+          'axes.labelsize': 15}
+plt.rcParams.update(params)
+plt.rcParams['figure.dpi'] = 200
+plt.rcParams['pdf.fonttype'] = 42
+sns.set_style(style='ticks')
+
 class RegionPlot():
-    """ """
+    """ Grid of plots showing a section of genomic space and associated data.
+        
+        Intitalization generates a user-defined number of data axes as well as a map of genomic
+        space. The position in genomic space can be altered with functions beginning with
+        setPosition and genome-shaped numpy arrays can then be directly plotted on the data axes.
+        Positions and regions can be plotted as well.
+        
+        Parameters:
+        ----------
+        gene_names : numpy array of names of all genes
+            NONE
+
+        gene_regions : numpy array of regions for all genes
+            NONE
+
+        n_axes : number of data axes to plot
+            NONE
+
+        single_strand : NONE
+            NONE
+
+        figsize : NONE
+            NONE
+
+        Attributes:
+        ----------
+        NONE : NONE
+            NONE
+
+        |- 0                                                                                  100 -|
+    """
     def setPosition_gene(self, name = None, spacer = 0.1, addl_5 = None, addl_3 = None):
         if name in self.gene_names is False: # check if gene exists
             raise IndexError('Gene not found in list of gene names.')
@@ -111,7 +150,6 @@ class RegionPlot():
                 if strand == 1: # on strand if top is positive
                     ylims = self.ax_data[0][axis_n].get_ylim()
                     # draw left lines
-                    print self._getxpos(left)
                     self.ax_data[0][axis_n].vlines(self._getxpos(left),
                                                    y_array[1,self.gright-np.where(self._getxpos(left) == self.xpos)[0]],
                                                    self.ax_data[0][axis_n].get_ylim()[1],**kwargs)
@@ -210,6 +248,6 @@ class RegionPlot():
                 self.ax_gene.append(ax)
         # generate the axes for showing both strands
         elif single_strand == False:
-            pass
+            raise NotImplementedError('only on strand is currently availible.')
         else:
             raise ValueError('single_strand must be True or False.')

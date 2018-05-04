@@ -108,7 +108,7 @@ def eventdpos(primary_pos, secondary_pos, maximum_distance, direction='5_prime',
         """
     pass
 
-def eventdyx(input_array, position_array, dy, maximum_distance, collapse_regions=True):
+def eventdyperx(input_array, position_array, dy, maximum_distance, collapse_regions=True):
     """ Finds regions based on shape of a peak or valley surrounding user-provided positions.
 
         For all positions in position_array, attempts to define a region by searching upstream (5')
@@ -128,7 +128,7 @@ def eventdyx(input_array, position_array, dy, maximum_distance, collapse_regions
             First member of tuple defines distance upstream (5') to look, second downstream. First
             position which meets the requisite dy is recorded in either direction.
 
-        maximum_distance : maximum distance to search for requsite dy, tuple: (float, float)
+        maximum_distance : maximum distance to search for requsite dy, tuple: (int, int)
             As with dy, first member is upstream, second member is downstream. Positions beyond
             maximum_distnace from position_array are not considered.
 
@@ -144,4 +144,50 @@ def eventdyx(input_array, position_array, dy, maximum_distance, collapse_regions
             column denotes right position (inclusive).
 
         """
-    pass
+    events = [] # list for storing events meeting criteria
+    for pos in position_array:
+        strand, position = pos # unpack strand and position
+        value = input_array[strand,position] # get value at position
+        try:
+            if strand == 0:
+                # try to find first position meeting delta criteria on the genomic left
+                left_slice = input_array[strand,position-maximum_distance[0]:position+1]
+                if dy[0] > 0: # positive change
+                    left = np.where(left_slice-value >= dy[0])[0][-1]
+                else: # negative change
+                    left = np.where(left_slice-value <= dy[0])[0][-1]
+                # try to find a position meeting delta criteria on the genomic right
+                right_slice = input_array[strand,position:position+maximum_distance[1]+1]
+                if dy[1] > 0: # positive change
+                    right = np.where(right_slice-value >= dy[1])[0][0]
+                else: # negative change
+                    right = np.where(right_slice-value <= dy[1])[0][0]
+                # convert relative left / right to genomic left / right
+                genomic_left = position-maximum_distance[0]+left
+                genomic_right = position+right
+            elif strand == 1:
+                # try to find first position meeting delta criteria on the genomic left
+                left_slice = input_array[strand,position-maximum_distance[1]:position+1]
+                if dy[1] > 0: # positive change
+                    left = np.where(left_slice-value >= dy[1])[0][-1]
+                else: # negative change
+                    left = np.where(left_slice-value <= dy[1])[0][-1]
+                # try to find a position meeting delta criteria on the genomic right
+                right_slice = input_array[strand,position:position+maximum_distance[0]+1]
+                if dy[0] > 0: # positive change
+                    right = np.where(right_slice-value >= dy[0])[0][0]
+                else: # negative change
+                    right = np.where(right_slice-value <= dy[0])[0][0]
+                # convert relative left / right to genomic left / right
+                genomic_left = position-maximum_distance[1]+left
+                genomic_right = position+right
+            else:
+                raise ValueError('strand must be 0 or 1.')
+            # add region to events list
+            events.append([strand, genomic_left, genomic_right])
+        except IndexError:
+            continue # an index error indicates a failure to meet criteria on one or both sides
+    if collapse_regions:
+        return ga.concatregions(np.asarray(events))
+    else:
+        return np.asarray(events)
