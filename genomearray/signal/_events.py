@@ -2,7 +2,7 @@ import numpy as np
 from scipy.signal import argrelmax
 from scipy.signal import argrelmin
 from scipy.ndimage.filters import gaussian_filter1d
-from genomearray import regionfunc
+import genomearray as ga
 
 def extrema(input_array, extrema_type = 'min', output_mask = None, smooth_sigma = None, search_nt = None):
     """ Detects and returns extrema positions in genome-shaped arrays.
@@ -27,7 +27,7 @@ def extrema(input_array, extrema_type = 'min', output_mask = None, smooth_sigma 
             If None, no smoothing is conducted. If a float, this value is passed to the gaussian
             smoothing function as the sigma value for smoothing.
 
-        search_nt : 0 (default) or int
+        search_nt : None (default) or int
             Distance to search (in both directions) for true extrema. Useful if smoothing 
             arguements have been passed as search is conducted on original (not smoothed)
             array.
@@ -47,21 +47,22 @@ def extrema(input_array, extrema_type = 'min', output_mask = None, smooth_sigma 
         search_array = gaussian_filter1d(input_array, smooth_sigma)
     # search for extrema
     if extrema_type == 'min':
-        extrema_pos = np.asarray(argrelmin(search_array, axis=1)).T
+        extrema_pos = np.asarray(argrelmin(search_array, axis=1))
     elif extrema_type == 'max':
-        extrema_pos = np.asarray(argrelmax(search_array, axis=1)).T
+        extrema_pos = np.asarray(argrelmax(search_array, axis=1))
     else:
         raise ValueError('Unhandled extrema type.')
     # further refine placement of extrema on original, unsmoothed array using regionfunc if search_nt is not None
     if search_nt is not None:
         if extrema_type == 'min':
             # check surrounding regions (+/- search_nt) for any lower/higher extrema positions
-            relative_extrema = regionfunc(np.argmin, extrema_pos, input_array, addl_nt = (search_nt, search_nt), wrt = 'genome')
+            relative_extrema = ga.regionfunc(np.argmin, extrema_pos.T, input_array, addl_nt = (search_nt, search_nt), wrt = 'genome')
         elif extrema_type == 'max':
-            relative_extrema = regionfunc(np.argmax, extrema_pos, input_array, addl_nt = (search_nt, search_nt), wrt = 'genome')
+            relative_extrema = ga.regionfunc(np.argmax, extrema_pos.T, input_array, addl_nt = (search_nt, search_nt), wrt = 'genome')
         else:
             raise ValueError('Unhandled extrema type.')
-        extrema_pos = np.asarray([extrema_pos[:,0],extrema_pos[:,1] + relative_extrema]) # convert relative extrema to actual genomic position
+        extrema_pos = np.asarray([extrema_pos.T[:,0],
+                                  extrema_pos.T[:,1] + relative_extrema - search_nt]) # convert relative extrema to actual genomic position
     # get values for position on original input_array, prepare for final output
     positions = extrema_pos.T
     values    = input_array[tuple(extrema_pos)]
