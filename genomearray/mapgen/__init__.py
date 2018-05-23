@@ -1,0 +1,1 @@
+from _ntmap import mapfragdensity

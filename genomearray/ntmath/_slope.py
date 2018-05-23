@@ -1,7 +1,7 @@
 import numpy as np
 
 def _vectorslope(y_vectors):
-    """ Accepts an array of arrays and calculates """
+    """ Accepts an array of arrays and calculates least squares slope. """
     x = np.reshape(np.arange(np.shape(y_vectors)[0]).astype(float),(-1,1))
     y = np.asarray(y_vectors).astype(float)
     slope_vector = ((len(x)*np.sum(x*y,axis=0)-np.sum(x,axis=0)*np.sum(y,axis=0))/

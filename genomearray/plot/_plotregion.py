@@ -3,12 +3,12 @@ import numpy as np
 import matplotlib.gridspec as gridspec 
 from matplotlib.patches import Polygon
 import seaborn as sns
+import regex
 
 params = {'xtick.labelsize':13,
           'ytick.labelsize':13,
           'axes.labelsize': 15}
 plt.rcParams.update(params)
-plt.rcParams['figure.dpi'] = 200
 plt.rcParams['pdf.fonttype'] = 42
 sns.set_style(style='ticks')
 
@@ -22,27 +22,28 @@ class RegionPlot():
         
         Parameters:
         ----------
-        gene_names : numpy array of names of all genes
-            NONE
+        gene_names : numpy array of names of all genes (str)
+            List of gene names for each of the gene_regions. These names are displayed in regions
+            within the plot window that are large enough to accommodate the text.
 
-        gene_regions : numpy array of regions for all genes
-            NONE
+        gene_regions : numpy array of regions for all genes, shape (n regions, 3)
+            The first column is presumed to be strand (0 or 1), the second column defines the left
+            genomic position of the region (inclusive), and the third column defines the right
+            genomic position of the region (inclusive).
 
-        n_axes : number of data axes to plot
-            NONE
+        n_axes : number of data axes to plot (int)
+            Number of matplotlib axes objects to create for holding data. If single_strand is True,
+            this number of axes are created above the gene plot. If is False, this number is created
+            both above and below the genome plots.
 
-        single_strand : NONE
-            NONE
+        single_strand : True (default) or False
+            If True, only the selected strand information will be plotted (above the gene plot). If
+            False, both the selected and off strand will be plotted. Off strand will be plotted 
+            below the gene plot.
 
-        figsize : NONE
-            NONE
-
-        Attributes:
-        ----------
-        NONE : NONE
-            NONE
-
-        |- 0                                                                                  100 -|
+        figsize : tuple of shape (2,)
+            Figure size to pass to matplotlib for all plots.
+            
     """
     def setPosition_gene(self, name = None, spacer = 0.1, addl_5 = None, addl_3 = None):
         if name in self.gene_names is False: # check if gene exists
@@ -166,6 +167,24 @@ class RegionPlot():
                                                          edgecolor='none',alpha=0.25,**kwargs)
                 if (strand == 1) and (self.single_strand == False):
                     pass # not implemented yet
+
+    def markSeq(self, regex_string, genome, offset=0, arrowprops=dict(arrowstyle='-|>',color='r',lw=0)):
+        forward = str(genome.seq[self.gleft:self.gright+1])
+        reverse = str(genome.seq[self.gleft:self.gright+1].reverse_complement())
+        # find instances in the forward direction (genomic coordinates)
+        fwd_marks = np.asarray([m.start() for m in regex.finditer(regex_string,forward,overlapped=True)])+self.gleft
+        # find instances in the reverse direction (genomic coordinates)
+        rev_marks = -1*np.asarray([m.start() for m in regex.finditer(regex_string,reverse,overlapped=True)])+self.gright
+        # draw annotations
+        if self.top_positive:
+            for mark in fwd_marks:
+                mark_x = self._getxpos(mark)
+                self.ax_gene[0].annotate('',[mark_x,.8],[mark_x,.7],arrowprops=arrowprops)
+        if self.top_positive == False:
+            for mark in rev_marks:
+                mark_x = self._getxpos(mark)
+                self.ax_gene[0].annotate('',[mark_x,.8],[mark_x,.7],arrowprops=arrowprops)
+
     
     def _drawgenes(self):
         overlapping_regions = self.gene_regions[(self.gene_regions[:,1] <= self.gright) &

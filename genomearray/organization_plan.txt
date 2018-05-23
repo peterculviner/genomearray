@@ -1,0 +1,84 @@
+## add to genomearray library
+idCut_PositiveSlope x
+idCut_PosAndNegSlope x
+idCut_Valley x
+idUncut_MiddlingPosNegSlope
+idUncut_HighAbs
+idUncut_MidPosNegSlopeAndHighAbs
+
+
+/genomearray
+	/genomearray
+		__init__.py
+		/mapgen
+			__init__.py
+
+		/plot
+			__init__.py
+			
+		/ntmath
+			__init__.py
+			_slope.py
+				_vectorslope
+				_vectorrollingslope
+				rollingslope
+
+		/regmath
+			__init__.py
+
+		/signal
+			__init__.py
+			_events.py
+				extrema        <- positive / negative slope ID for cleavage
+				eventdpos      <- ID cleavage events by distance between positive and negative slope extrema
+				eventdyx       <- dy/maximum(x) event discovery 
+			_regions.py
+				absregion      <- region masking for: abs, middling positive/negative slope, union of the three
+
+		/core
+			__init__.py
+			pwm.py
+				getGenomeConvolution
+				getPositionWeightMatrix
+			genomereps.py
+				convertDNAToOneHot
+				addChannels
+				getOneHotGenome
+			slicing.py
+				regionfunc
+				slicegenome
+
+
+
+
+## unassigned
+
+getFilterValues
+getBestROCAUC
+convolveFilter
+getFilterAlignments
+collectFeatureData
+getFilterConvolutionData
+getFilterInfluenceValues
+extractFilterInfluenceAndConvolutionData
+plotAUCvInfluence
+insertPWM
+binaryPWM
+continuousStdev
+genomeCleavageSplit
+plotFilterDetails
+plotDiscoveredMotifs
+
+getCRMinima
+combineOverlappingRegions
+getMinimaRegions
+findContiguousTrueRegions
+updateRegions
+sampleRegions_RandomNoRepeats
+getOneHotRepresentation
+makeFeaturesFromPositions
+generateFeatures_binary
+randomShuffle
+splitData_60_20_20
+dataGenerator
+fitAndTest_ReduceLR_EarlyStop

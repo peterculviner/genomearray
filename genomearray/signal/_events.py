@@ -72,7 +72,7 @@ def extrema(input_array, extrema_type = 'min', output_mask = None, smooth_sigma 
         values = values[output_mask[tuple(extrema_pos)]]
     return positions, values
 
-def eventdpos(primary_pos, secondary_pos, maximum_distance, direction='5_prime', collpase_regions=True):
+def eventdpos(primary_pos, secondary_pos, maximum_distance, direction='5_prime', collapse_regions=True):
     """ Finds regions based on primary_pos and secondary_pos arrays.
 
         Starting with an array of primary_pos, attempts to define regions with secondary_pos within
@@ -106,7 +106,35 @@ def eventdpos(primary_pos, secondary_pos, maximum_distance, direction='5_prime',
             column denotes right position (inclusive).
 
         """
-    pass
+    events = [] # list for storing events meeting criteria
+    if (direction != '5_prime') and (direction != '3_prime'):
+        raise ValueError("direction must be '5_prime' or '3_prime'.")
+    for ppos in primary_pos:
+        pstrand, pnt = ppos
+        if ((pstrand == 0) and (direction == '5_prime')) or ((pstrand == 1) and (direction == '3_prime')): # cases for looking to the genomic left
+            in_range_mask = np.all([pstrand == secondary_pos[:,0], # same strand
+                                    secondary_pos[:,1] >= pnt - maximum_distance, 
+                                    secondary_pos[:,1] <= pnt], axis=0)
+            try:
+                event_left = np.max(secondary_pos[in_range_mask,1]) # get the rightmost (ie the smallest possible region)
+                events.append([pstrand, event_left, pnt])
+            except ValueError: # no positions meeting the threshold were found
+                pass
+        else: # all remaining cases are looking to the genomic right
+            in_range_mask = np.all([pstrand == secondary_pos[:,0], # same strand
+                                    secondary_pos[:,1] <= pnt + maximum_distance, 
+                                    secondary_pos[:,1] >= pnt], axis=0)
+            try:
+                event_right = np.min(secondary_pos[in_range_mask,1]) # get the rightmost (ie the smallest possible region)
+                events.append([pstrand, pnt, event_right])
+            except ValueError: # no positions meeting the threshold were found
+                pass
+    if collapse_regions:
+        return ga.concatregions(np.asarray(events))
+    else:
+        return np.asarray(events)
+
+
 
 def eventdyperx(input_array, position_array, dy, maximum_distance, collapse_regions=True):
     """ Finds regions based on shape of a peak or valley surrounding user-provided positions.
