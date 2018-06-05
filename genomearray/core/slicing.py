@@ -105,3 +105,47 @@ def regionfunc(input_function, regions, input_array, addl_nt = (0,0), wrt = '5_t
         except:
             out.append(np.nan) # if function raises an exception, add np.nan to the list
     return out
+
+def _splitregion(region_len, window_len, stride):
+    n_steps = (region_len - window_len) / stride + 1
+    lefts = np.asarray([i*stride for i in range(n_steps)])
+    rights = lefts+window_len-1
+    remainder = region_len - rights[-1] - 1
+    return lefts + remainder/2, rights + remainder/2
+
+def splitregions(region_array, window_len, stride):
+    """ Split regions into sub-regions with a given window length and stride.
+
+        Provided a list of regions [strand, left, right] (inclusive), steps across each region with
+        steps of length stride and divides it into sub-regions of a given window length. If there is
+        a remainder after splitting (an additional complete window can't fit), it will be split on
+        the left and right sides of the input region.
+        
+        Parameters:
+        ----------
+        region_array : numpy array, shape (n_regions, 3)
+            List of regions, inclusive, with columns of strand, left genomic position, and right
+            genomic postion.
+
+        window_length : int
+            Length of the windows for regions to be subdivided into.
+        
+        stride : int
+            Length of the steps for subdividing regions. For example, if stride < window_length,
+            windows will be overlapping.
+
+        Returns:
+        ----------
+        region_output : numpy array, shape (n_regions, 3)
+            List of regions as above region_array, but the subdivided according to window_length and
+            stride.
+    """
+    region_output = np.empty((0,3), dtype=np.int)
+    for region in region_array:
+        strand, left, right = region
+        region_length = right - left + 1
+        if region_length >= window_len:
+            new_lefts, new_rights = _splitregion(region_length, window_len, stride)
+            new_regions = np.asarray([np.zeros(len(new_lefts))+strand, new_lefts+left, new_rights+left], dtype=np.uint32).T
+            region_output = np.r_[region_output, new_regions]
+    return region_output

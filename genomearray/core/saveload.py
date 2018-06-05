@@ -1,3 +1,4 @@
+import pysam
 import numpy as np
 import genomearray as ga
 from scipy.stats import gmean
@@ -39,6 +40,22 @@ def _mediansizefactors(samples, gene_regions):
     gene_ratios = sample_sums / reference_sample.reshape(1,-1)
     size_factors = np.nanmedian(gene_ratios, axis=1)
     return size_factors
+
+def countnormalization(sample_arrays, paths_to_bams = None, log2 = None):
+    # calculate size factors from raw reads mapped to bam files
+    counts = []
+    for path in paths_to_bams:
+        counts.append(pysam.Samfile(path, 'rb').mapped)
+    counts = np.asarray(counts)
+    size_factors = counts / gmean(counts)
+    # now normalize the arrays
+    normalized_sample_arrays = (sample_arrays + 1) / size_factors.reshape(-1,1,1)
+    if log2:
+        return np.log2(normalized_sample_arrays)
+    elif log2 == False:
+        return normalized_sample_arrays
+    raise ValueError('log2 must be set to True or False.')
+
 
 def mediandensitynormalization(sample_arrays, regions = None, log2 = None):
     size_factors = _mediansizefactors(sample_arrays, regions)
