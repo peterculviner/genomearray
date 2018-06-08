@@ -56,7 +56,6 @@ def countnormalization(sample_arrays, paths_to_bams = None, log2 = None):
         return normalized_sample_arrays
     raise ValueError('log2 must be set to True or False.')
 
-
 def mediandensitynormalization(sample_arrays, regions = None, log2 = None):
     size_factors = _mediansizefactors(sample_arrays, regions)
     normalized_sample_arrays = (sample_arrays + 1) / size_factors.reshape(-1,1,1)

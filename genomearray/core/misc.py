@@ -35,3 +35,28 @@ def concatregions(in_regions):
             else:
                 out_regions.append(next_value)
     return np.asarray(out_regions)
+
+def regionmask(in_regions, genome_len):
+    """ Makes a genome-shaped (2, genome_len) True / False mask based on in_regions.
+
+        All positions which fall into in_regions will be marked as True.
+        
+        Parameters:
+        ----------
+        in_regions : array-like, shape (n regions, 3)
+            The first column is presumed to be strand (0 or 1), the second column defines the left
+            genomic position of the region (inclusive), and the third column defines the right
+            genomic position of the region (inclusive).
+
+        genome_len : int
+            Length of the genome must be provided to make the returned mask have the proper shape.
+
+        Returns:
+        ----------
+        out_mask : numpy array, shape (2, genome_len)
+            A mask of shape (2, genome_len) with positions included in in_regions as True.
+    """
+    out_mask = np.zeros((2,genome_len)).astype(bool)
+    for region in in_regions:
+        out_mask[region[0],region[1]:region[2]+1] = True
+    return out_mask
