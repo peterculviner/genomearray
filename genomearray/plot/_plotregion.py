@@ -75,6 +75,22 @@ class RegionPlot():
                 self.gleft = left - addl_3
         self._setxpos()
         self._drawgenes()
+
+    def setPosition_coor(self, strand=None, center=None, addl_5=100, addl_3=100):
+        # plot directly from given coordinates
+        if strand == 0:
+            self.top_positive = True
+            self.zero = center
+            self.gleft = center - addl_5
+            self.gright = center + addl_3
+        elif strand == 1:
+            self.top_positive = False
+            self.zero = center
+            self.gright = center + addl_5
+            self.gleft = center - addl_3
+        self._setxpos()
+        self._drawgenes()
+
     
     def plotLine(self, axis_n = None, data = None, **kwargs):
         if self.top_positive:
