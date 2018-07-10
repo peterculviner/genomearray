@@ -136,7 +136,7 @@ def eventdpos(primary_pos, secondary_pos, maximum_distance, direction='5_prime',
 
 
 
-def eventdyperx(input_array, position_array, dy, maximum_distance, collapse_regions=True):
+def eventdyperx(input_array, position_array, dy, maximum_distance, collapse_regions=True, return_positions=False):
     """ Finds regions based on shape of a peak or valley surrounding user-provided positions.
 
         For all positions in position_array, attempts to define a region by searching upstream (5')
@@ -165,14 +165,22 @@ def eventdyperx(input_array, position_array, dy, maximum_distance, collapse_regi
             leftmost coordinate and rightmost coordinate of all overlapping regions. Otherwise
             returns region list ignoring overlaps.
 
+        return_positions : bool, False (default) or True
+            If True, returns a second output, a list of the positions which passed
+
         Returns:
         ----------
         events : array of regions, numpy array of shape (n regions, 3)
             First column denotes strand, second column denotes left position (inclusive), third
             column denotes right position (inclusive).
+        
+        event_pos (optional) : array of positions, numpy array of shape (n positions, 2)
+            If return_positions is set to True, the positions from which the events arose
+            will also be returned.
 
         """
     events = [] # list for storing events meeting criteria
+    event_generated = [] # list for storing if a given position generated an event
     for pos in position_array:
         strand, position = pos # unpack strand and position
         value = input_array[strand,position] # get value at position
@@ -213,9 +221,17 @@ def eventdyperx(input_array, position_array, dy, maximum_distance, collapse_regi
                 raise ValueError('strand must be 0 or 1.')
             # add region to events list
             events.append([strand, genomic_left, genomic_right])
+            event_generated.append(True)
         except IndexError:
+            event_generated.append(False)
             continue # an index error indicates a failure to meet criteria on one or both sides
-    if collapse_regions:
-        return ga.concatregions(np.asarray(events))
+    if return_positions: 
+        if collapse_regions:
+            return ga.concatregions(np.asarray(events)), position_array[np.asarray(event_generated),:]
+        else:
+            return np.asarray(events), position_array[np.asarray(event_generated),:]
     else:
-        return np.asarray(events)
+        if collapse_regions:
+            return ga.concatregions(np.asarray(events))
+        else:
+            return np.asarray(events)

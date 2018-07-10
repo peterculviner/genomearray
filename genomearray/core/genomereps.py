@@ -1,6 +1,6 @@
 import numpy as np
 
-def convertDNAToOneHot(string,dtype=np.uint8):
+def dnatoonehot(string,dtype=np.uint8):
     """ A,T,G,C 
         0 1 2 4 """
     string_representation = []
