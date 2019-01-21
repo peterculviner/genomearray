@@ -26,8 +26,19 @@ def addChannels(genome_representation, additional_arrays):
     concatenated_representation = np.concatenate([genome_representation,np.reshape(additional_data_arrays[:,:,:],(additional_data_arrays.shape[1],additional_data_arrays.shape[0],-1))])
     return concatenated_representation
 
-def getOneHotGenome(genbank_file):
-    genome_fwd = convertDNAToOneHot(str(genome.seq))
-    genome_rev = np.flip(convertDNAToOneHot(str(genome.seq.reverse_complement())),0)
+def genometoonehot(genbank_file):
+    genome_fwd = dnatoonehot(str(genbank_file.seq))
+    genome_rev = np.flip(dnatoonehot(str(genbank_file.seq.reverse_complement())),0)
     genome_onehot = np.asarray([genome_fwd, genome_rev])
     return genome_onehot
+
+def extractntonehot(onehot_genome, positions, five, three):
+    extracted_nt = []
+    for s,pos in positions:
+        if s == 0:
+            extracted_nt.append(onehot_genome[s,pos-five:pos+three])
+        elif s == 1:
+            extracted_nt.append(np.flip(onehot_genome[s,pos-three+1:pos+five+1],0))
+    return extracted_nt
+
+

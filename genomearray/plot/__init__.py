@@ -1,1 +1,1 @@
-from _plotregion import RegionPlot
+from _plotregion import RegionPlot, AlignmentPlot

@@ -1,5 +1,5 @@
 # import core functionality on top level
-from core.genomereps import dnatoonehot, addChannels, getOneHotGenome
+from core.genomereps import dnatoonehot, addChannels, genometoonehot, extractntonehot
 from core.slicing import regionfunc, regionslice, genomeslice, splitregions
 from core.pwm import getGenomeConvolution, getPositionWeightMatrix
 from core.saveload import loadarrays, mediandensitynormalization, countnormalization

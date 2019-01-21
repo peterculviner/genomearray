@@ -219,7 +219,7 @@ class RegionPlot():
                              [gene_right,.32], # right triangle point, middle
                              [max(gene_left,gene_right-tri_len),.02], # right triangle corner, bottom
                              [gene_left,.02]], # left square corner, bottom
-                            linewidth=1.5,facecolor='w'))
+                            linewidth=1.5,facecolor='w',edgecolor='k'))
                 if min(gene_right,self.xpos[-1]) - max(gene_left,self.xpos[0]) >= (self.gright - self.gleft) * .12:
                     self.ax_gene[0].text((min(gene_right,self.xpos[-1]) + max(gene_left,self.xpos[0]))/2,.32, name,
                                           horizontalalignment='center',verticalalignment='center',fontsize=15)
@@ -230,7 +230,7 @@ class RegionPlot():
                              [gene_right,.98], # right square corner, top
                              [gene_right,.38], # right square corner, bottom
                              [gene_left+tri_len,.38]], # left triangle corner, bottom
-                            linewidth=1.5,facecolor='w'))
+                            linewidth=1.5,facecolor='w',edgecolor='k'))
                 if min(gene_right,self.xpos[-1]) - max(gene_left,self.xpos[0]) >= (self.gright - self.gleft) * .12:
                     self.ax_gene[1].text((min(gene_right,self.xpos[-1]) + max(gene_left,self.xpos[0]))/2,.68, name,
                                           horizontalalignment='center',verticalalignment='center',fontsize=15)
@@ -286,3 +286,87 @@ class RegionPlot():
             raise NotImplementedError('only on strand is currently availible.')
         else:
             raise ValueError('single_strand must be True or False.')
+
+class AlignmentPlot():
+    def setPosition_coor(self, center=None, addl_5=100, addl_3=100):
+        # plot directly from given coordinates
+        self.zero = center
+        self.gleft = center - addl_5
+        self.gright = center + addl_3
+        self._setxpos()
+        self._drawgenes()
+        
+    def plotLine(self, axis_n = None, data = None, **kwargs):
+        self.ax_data[0][axis_n].plot(self.xpos, data[self.gleft:self.gright+1], **kwargs)
+        self.ax_data[0][axis_n].set_xlim(self.xpos[0],self.xpos[-1])
+        
+    def _setxpos(self):
+        self.xpos = np.arange(self.gright-self.gleft+1) - (self.zero - self.gleft)
+        
+    def _getxpos(self, genome_pos):
+        return genome_pos - self.zero
+        
+    def _drawgenes(self):
+        overlapping_regions = self.gene_regions[(self.gene_regions[:,1] <= self.gright) &
+                                                (self.gene_regions[:,2] >= self.gleft)]
+        overlapping_names   = self.gene_names[(self.gene_regions[:,1] <= self.gright) &
+                                              (self.gene_regions[:,2] >= self.gleft)]
+        for name, region in zip(overlapping_names, overlapping_regions):
+            gene_strand, left, right = region
+            gene_left  = min(self._getxpos(left),self._getxpos(right))
+            gene_right = max(self._getxpos(left),self._getxpos(right))
+            tri_len = (self.gright - self.gleft)*0.04
+            if gene_strand == 0:
+                self.ax_gene[0].add_patch(
+                    Polygon([[gene_left,.62], # left square corner, top
+                             [max(gene_left,gene_right-tri_len),.62], # right triangle corner, top
+                             [gene_right,.32], # right triangle point, middle
+                             [max(gene_left,gene_right-tri_len),.02], # right triangle corner, bottom
+                             [gene_left,.02]], # left square corner, bottom
+                            linewidth=1.5,facecolor='w',edgecolor='k'))
+                if min(gene_right,self.xpos[-1]) - max(gene_left,self.xpos[0]) >= (self.gright - self.gleft) * .12:
+                    self.ax_gene[0].text((min(gene_right,self.xpos[-1]) + max(gene_left,self.xpos[0]))/2,.32, name,
+                                          horizontalalignment='center',verticalalignment='center',fontsize=15)
+            else:
+                self.ax_gene[1].add_patch(
+                    Polygon([[gene_left,.68], # left point
+                             [gene_left+tri_len,.98], # left triangle corner, top
+                             [gene_right,.98], # right square corner, top
+                             [gene_right,.38], # right square corner, bottom
+                             [gene_left+tri_len,.38]], # left triangle corner, bottom
+                            linewidth=1.5,facecolor='w',edgecolor='k'))
+                if min(gene_right,self.xpos[-1]) - max(gene_left,self.xpos[0]) >= (self.gright - self.gleft) * .12:
+                    self.ax_gene[1].text((min(gene_right,self.xpos[-1]) + max(gene_left,self.xpos[0]))/2,.68, name,
+                                          horizontalalignment='center',verticalalignment='center',fontsize=15)
+    
+    def __init__(self, gene_names, gene_regions, n_axes, figsize):
+        # store important variables for object function
+        self.gene_names = np.asarray(gene_names)
+        self.gene_regions = np.asarray(gene_regions)
+        # start making plot
+        self.figure = plt.figure(figsize=figsize)
+        self.ax_data = [[],[]]
+        self.ax_gene = []
+        # define axis locations
+        grid = plt.GridSpec(n_axes+2, 1, height_ratios=[2 for i in range(n_axes)]+[1,1])
+        # define axes, remove spines, etc.
+        for i in range(n_axes): # define data axes
+            if i == 0:
+                ax = plt.subplot(grid[i:i+1])
+            else:
+                ax = plt.subplot(grid[i:i+1],sharex=self.ax_data[0][0])
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.xaxis.set_ticks_position('bottom')
+            ax.yaxis.set_ticks_position('left')
+            ax.yaxis.set_major_locator(plt.MaxNLocator(nbins=4, integer=True))
+            ax.tick_params(axis='both', which='major', pad=1, length=4)
+            self.ax_data[0].append(ax)
+            if i != n_axes-1:
+                plt.setp(ax.get_xticklabels(),visible=False)
+        for i in range(2): # define gene axes
+            ax = plt.subplot(grid[n_axes+i:n_axes+i+1],sharex=self.ax_data[0][0])
+            ax.set_frame_on(False)
+            ax.axes.get_xaxis().set_visible(False)
+            ax.axes.get_yaxis().set_visible(False)
+            self.ax_gene.append(ax)

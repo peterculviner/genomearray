@@ -101,6 +101,8 @@ def regionfunc(input_function, regions, input_array, addl_nt = (0,0), wrt = '5_t
             right = right + addl_nt[1]
         try:
             # to get arrays, use genomeslice function to ensure directional (i.e. 5' -> 3') input_functions work as intended
+            left = np.maximum(0,left)
+            right = np.minimum(input_array.shape[1],right)
             out.append(input_function(genomeslice(input_array, strand, left, right, wrt=wrt)))
         except:
             out.append(np.nan) # if function raises an exception, add np.nan to the list
