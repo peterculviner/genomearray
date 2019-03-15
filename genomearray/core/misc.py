@@ -21,9 +21,13 @@ def concatregions(in_regions):
             into single regions.
     """
     out_regions = []
+    if len(in_regions) == 0: # if no regions, then return empty
+        return np.asarray(out_regions)
     for strand in [0,1]:
         # sort by left position
         on_strand = in_regions[in_regions[:,0] == strand]
+        if len(on_strand) <= 1: # if 0 or 1 on this strand, then skip
+            continue
         in_stack = list(on_strand[np.argsort(on_strand[:,1])[::-1]])
         out_regions.append(in_stack.pop())
         while len(in_stack) > 0:

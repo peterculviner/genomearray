@@ -56,6 +56,17 @@ def countnormalization(sample_arrays, paths_to_bams = None, log2 = None):
         return normalized_sample_arrays
     raise ValueError('log2 must be set to True or False.')
 
+def regionsumnormalization(sample_arrays, regions = None, log2 = None):
+    sample_sums = []
+    for counts in sample_arrays:
+        sample_sums.append(np.sum(ga.regionfunc(np.sum, regions, counts)))
+    size_factors = np.asarray(sample_sums) / gmean(sample_sums,axis=0)
+    if log2:
+        return (sample_arrays + 1) / size_factors.reshape(-1,1,1)
+    elif log2 == False:
+        return sample_arrays / size_factors.reshape(-1,1,1)
+    raise ValueError('log2 must be set to True or False')
+
 def mediandensitynormalization(sample_arrays, regions = None, log2 = None):
     size_factors = _mediansizefactors(sample_arrays, regions)
     normalized_sample_arrays = (sample_arrays + 1) / size_factors.reshape(-1,1,1)
@@ -64,3 +75,31 @@ def mediandensitynormalization(sample_arrays, regions = None, log2 = None):
     elif log2 == False:
         return normalized_sample_arrays
     raise ValueError('log2 must be set to True or False.')
+
+def loadarrays2d(array_paths, normalization=None, **kwargs):
+    all_loaded_arrays = []
+    for sample_arrays in array_paths:
+        sample_loaded_arrays = []
+        for single_array in sample_arrays:
+            sample_loaded_arrays.append(np.load(single_array))
+        all_loaded_arrays.append(sample_loaded_arrays)
+    if normalization is None:
+        return all_loaded_arrays
+    else:
+        return normalization(all_loaded_arrays, **kwargs)
+    
+def regionsumnormalization2d(sample_arrays2d, multi_regions = None, log2 = None):
+    sample_sums = []
+    for sample_arrays in sample_arrays2d:
+        genome_sums = []
+        for sample_counts, regions in zip(sample_arrays, multi_regions):
+            genome_sums.append(np.sum(np.asarray(ga.regionfunc(np.sum, regions, sample_counts))))
+        sample_sums.append(np.sum(genome_sums))
+    size_factors = np.asarray(sample_sums) / gmean(sample_sums,axis=0)
+    if log2:
+        return [[np.log2((sample_counts+1)/factor) for sample_counts in sample]
+                 for sample, factor in zip(sample_arrays2d,size_factors)]
+    elif log2 == False:
+        return [[(sample_counts)/factor for sample_counts in sample]
+                 for sample, factor in zip(sample_arrays2d,size_factors)]
+    raise ValueError('log2 must be set to True or False')
